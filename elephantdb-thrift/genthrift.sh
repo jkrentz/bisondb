@@ -9,7 +9,7 @@ rm -rf src/jvm/elephantdb/generated
 # Generate source for each thrift file.
 for f in src/*.thrift
 do
-    thrift -r --gen py --gen java:beans,nocamel $f
+    thrift -r --gen py:utf8strings --gen java:beans,hashcode,nocamel $f
 done
 
 # Move generated files into proper directories
