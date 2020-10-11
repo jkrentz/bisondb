@@ -1,0 +1,45 @@
+(ns bisondb.cascalog.conf
+  (:use [cascalog.cascading.util :only (fields)])
+  (:import [bisondb DomainSpec DomainSpec$Args]
+           [bisondb.cascading BisonDBTap$Args]
+           [java.util ArrayList HashMap]))
+
+(defn convert-java-domain-spec [^DomainSpec spec]
+  {:coordinator  (.getCoordinator spec)
+   :shard-scheme (.getShardScheme spec)
+   :num-shards   (.getNumShards spec)
+   :persistence-options (.getPersistenceOptions spec)})
+
+(defn convert-clj-domain-spec
+  [{:keys [coordinator shard-scheme num-shards persistence-options]}]
+  {:pre [(and coordinator shard-scheme num-shards)]}
+  (if persistence-options
+    (let [args (DomainSpec$Args.)]
+      (set! (.persistenceOptions args) (HashMap. persistence-options))
+      (DomainSpec. coordinator shard-scheme num-shards args))
+    (DomainSpec. coordinator shard-scheme num-shards)))
+
+(defn convert-domain-spec [spec]
+  (if (instance? DomainSpec spec)
+    spec
+    (convert-clj-domain-spec spec)))
+
+(defn read-domain-spec
+  "A domain spec is stored with shards in the VersionedStore. Look to
+  s3 for an example here."
+  [fs path]
+  (when-let [spec (DomainSpec/readFromFileSystem fs path)]
+    (convert-java-domain-spec spec)))
+
+(defn convert-args
+  [{:keys [tmp-dirs source-fields
+           timeout-ms version]}]
+  (let [mk-list (fn [xs] (when xs (ArrayList. xs)))
+        ret      (BisonDBTap$Args.)]
+    (when source-fields
+      (set! (.sourceFields ret) (fields source-fields)))
+    (set! (.tmpDirs ret) (mk-list tmp-dirs))
+    (when timeout-ms
+      (set! (.timeoutMs ret) timeout-ms))
+    (set! (.version ret) version)
+    ret))
