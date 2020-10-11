@@ -18,14 +18,14 @@ production.
 BisonDB server has a Thrift interface, so any language can make
 reads from it. The database itself is implemented in Clojure.
 
-An BisonDB datastore contains a fixed number of shards of a "Local
+A BisonDB datastore contains a fixed number of shards of a "Local
 Persistence". BisonDB's local persistence engine is pluggable, and
 BisonDB comes bundled with local persistence implementations for
 Berkeley DB Java Edition and LevelDB. On the MapReduce side, each
 reducer creates or updates a single shard into the DFS, and on the
 server side, each server serves a subset of the shards.
 
-BisonDB support hot-swapping so that a live server can be updated
+BisonDB supports hot-swapping so that a live server can be updated
 with a new set of shards without downtime.
 
 # Using BisonDB in MapReduce Jobs
